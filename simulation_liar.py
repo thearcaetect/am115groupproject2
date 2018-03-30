@@ -128,6 +128,8 @@ class Player:
 	def calculate_prob(self):
 		# use binomial distribution
 
+		# once prob has been determined, should call or bet from here
+
 		return
 
 
