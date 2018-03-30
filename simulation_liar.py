@@ -36,7 +36,6 @@ class GameState:
 		return self.player_hands[player_id]
 
 
-
 # utilities for running the actual rounds of the game
 # inherits the gamestate class, as that is what it manipulates
 class RunGame(GameState):
@@ -45,6 +44,7 @@ class RunGame(GameState):
 		# how many turns has it been
 		self.num_turn = 0
 
+	# method for initializing all the dice
 	def initial_roll(self):
 		all_rolls =[]
 		for i in range(self.num_players * self.num_dice):
@@ -56,6 +56,7 @@ class RunGame(GameState):
 		self.player_hands = [all_rolls[i:i + size] for i  in range(0, len(all_rolls), size)]
 		return
 
+	# method for if the current player decides to call the previous player's bet
 	def call_bluff(self, bet):
 		# cnt is number of actual occurences of the face value
 		# bet(0) is the number of occurrences in the current bet
@@ -65,17 +66,29 @@ class RunGame(GameState):
 		else:
 			return True
 
-	def new_bet(self):
+	# method for if the current player decides to increase the current bet
+	# remember this is a tuple
+	def new_bet(self, new_bet):
+		self.current_bid = new_bet
 		return
 
 
 	# simulates another round, says whether or not the game is won
 	# takes the id of the current player's turn,
-	# either the next bet or whether the player challenges the previous bet
+	# either the next bet as a tuple or 
+	# whether the player challenges the previous bet
 	def next_player_turn(self, player_id, raise=None, call=False):
-		
 		if call == True:
-			self.call_bluff(bet)
+			# if the current player guesses right
+			if self.call_bluff(bet):
+				# update the game state and player hand
+
+			# if bid was true
+			else:
+
+
+		else:
+
 
 		return
 
