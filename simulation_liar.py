@@ -1,6 +1,7 @@
 import numpy as np
 from numpy import random as rand
 from random import randint
+import scipy.stats as prob
 
 
 
@@ -22,7 +23,7 @@ class GameState:
 		self.player_hands = []
 
 		# the current bid is a tuple of quantity and face value
-		# i.E. initial bid is that there is at least one dice with 
+		# i.E. initial bid is that there is at least one dice with
 		# face value 2
 		self.current_bid = (1,2)
 
@@ -46,14 +47,18 @@ class RunGame(GameState):
 
 	# method for initializing all the dice
 	def initial_roll(self):
-		all_rolls =[]
-		for i in range(self.num_players * self.num_dice):
-			roll = randint(1, 6)
-			all_rolls.append(roll)
-		#random.shuffle(all_rolls)
-		size = self.dice_per_player
-		# splits the rolls to different players
-		self.player_hands = [all_rolls[i:i + size] for i  in range(0, len(all_rolls), size)]
+		# all_rolls =[]
+		# for i in range(self.num_players * self.num_dice):
+		# 	roll = randint(1, 6)
+		# 	all_rolls.append(roll)
+		# #random.shuffle(all_rolls)
+		# size = self.dice_per_player
+		# # splits the rolls to different players
+		# self.player_hands = [all_rolls[i:i + size] for i  in range(0, len(all_rolls), size)]
+		for i in xrange(1,self.num_players+1):
+			roll = randint(1,7,5)
+			self.player_hands.append(roll)
+
 		return
 
 	# method for if the current player decides to call the previous player's bet
@@ -75,7 +80,7 @@ class RunGame(GameState):
 
 	# simulates another round, says whether or not the game is won
 	# takes the id of the current player's turn,
-	# either the next bet as a tuple or 
+	# either the next bet as a tuple or
 	# whether the player challenges the previous bet
 	def next_player_turn(self, player_id, raise=None, call=False):
 		if call == True:
@@ -94,17 +99,25 @@ class RunGame(GameState):
 
 
 class Player:
-	# want to know which player it is, ids are just ints
+	# want to know which player it is, ids are just ints (starting at 0)
 	def __init__(self, player_id):
 		self.player_id = player_id
 		self.player_hand = None
+		self.my_dice = None
+		self.rest_of_dice = None
 
 
 	def update_my_hand(self, ):
+		# get your hand from the GameState class
+
 		return
 
 
 	def get_total_dice_left(self):
+		# first update hand so we can count how many dice we have in our hand
+
+		# get total number of remaining dice, and subtract your amount
+
 		return
 
 
@@ -113,6 +126,8 @@ class Player:
 
 
 	def calculate_prob(self):
+		# use binomial distribution
+
 		return
 
 
@@ -126,7 +141,7 @@ class Player:
 
 
 # player turn --> calculate probabilities for that player's bid
-	# total number of dice 
+	# total number of dice
 	# their current dice
 
 
