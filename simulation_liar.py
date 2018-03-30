@@ -1,149 +1,174 @@
+#!/usr/local/bin/python
+
 import numpy as np
-from numpy import random as rand
-from random import randint
 import scipy.stats as prob
-
-
-
-# game state class
-	# global dice, and which player has what
-	# players turn
-	# current bid
-
-
-
-class GameState:
-	def __init__(self, num_players):
-		self.dice_per_player = 5
-
-		self.num_players = num_players
-
-		self.num_dice = self.dice_per_player * self.num_players
-
-		self.player_hands = []
-
-		# the current bid is a tuple of quantity and face value
-		# i.E. initial bid is that there is at least one dice with
-		# face value 2
-		self.current_bid = (1,2)
-
-	def get_current_bid(self):
-		return self.current_bid
-
-	def get_all_player_hands(self):
-		return self.player_hands
-
-	def get_player_hand(self, player_id):
-		return self.player_hands[player_id]
-
+import time
+import os
 
 # utilities for running the actual rounds of the game
 # inherits the gamestate class, as that is what it manipulates
-class RunGame(GameState):
-	# initial distribution (roll the dies)
-	def __init__(self, game_state):
-		# how many turns has it been
-		self.num_turn = 0
+class RunGame:
+    # initial distribution (roll the dies)
+    def __init__(self, num_players, dice_per_player):
+        self.num_players = num_players
+        self.total_dice = dice_per_player * self.num_players
 
-	# method for initializing all the dice
-	def initial_roll(self):
-		# all_rolls =[]
-		# for i in range(self.num_players * self.num_dice):
-		# 	roll = randint(1, 6)
-		# 	all_rolls.append(roll)
-		# #random.shuffle(all_rolls)
-		# size = self.dice_per_player
-		# # splits the rolls to different players
-		# self.player_hands = [all_rolls[i:i + size] for i  in range(0, len(all_rolls), size)]
-		for i in xrange(1,self.num_players+1):
-			roll = randint(1,7,5)
-			self.player_hands.append(roll)
+        self.player_hands = []
+        self.player_dice = []
 
-		return
+        # no need to shuffle as already random, one array per player
+        for i in xrange(1,self.num_players+1):
+            roll = np.random.randint(1,7,dice_per_player)
+            self.player_hands.append(roll)
+            self.player_dice.append(dice_per_player)
 
-	# method for if the current player decides to call the previous player's bet
-	def call_bluff(self, bet):
-		# cnt is number of actual occurences of the face value
-		# bet(0) is the number of occurrences in the current bet
-		cnt = self.player_hands.count(bet(1))
-		if cnt >= bet(0):
-			return False
-		else:
-			return True
+        # total number of turns in game so far
+        self.cumul_turns = 0
 
-	# method for if the current player decides to increase the current bet
-	# remember this is a tuple
-	def new_bet(self, new_bet):
-		self.current_bid = new_bet
-		return
+        # who holds the current turn
+        self.current_player = 0
+        self.previous_player = None
+        self.game_over = 0
 
+        # the current bid is a tuple of quantity and face value
+        # i.E. initial bid is that there is at least one dice with
+        # face value 2
+        self.current_bid = (1,2)
 
-	# simulates another round, says whether or not the game is won
-	# takes the id of the current player's turn,
-	# either the next bet as a tuple or
-	# whether the player challenges the previous bet
-	def next_player_turn(self, player_id, raise=None, call=False):
-		if call == True:
-			# if the current player guesses right
-			if self.call_bluff(bet):
-				# update the game state and player hand
+    # method for rerolling the dice and taking into account
+    def roll_dice(self):
+        new_total = 0
+        # initiate each player as a tuple and add to the players list
+        for i in xrange(0,self.num_players):
+            cur_dice = self.player_dice[i]
+            # implies the player has dice which to roll
+            if cur_dice > 0:
+                new_total += cur_dice
+                new_hand = np.random.randint(1,7,cur_dice)
+                self.player_hands[i] = new_hand
 
-			# if bid was true
-			else:
+        self.total_dice = new_total
+        return
 
 
-		else:
+    # will return a tuple, if first value is True then second element is the bet
+    # that should be placed, if first value False, action is to call
+    def calculate_prob(self):
+        # use binomial distribution (will implement later)
+
+        # once prob has been determined
+        if self.previous_player is None:
+            self.make_new_bid((3,4))
+
+        else:
+            self.call_on_bid()
+
+        return
+
+    # method that checks if only one player remains, if so updates global flag
+    def check_if_game_won(self):
+        x = [i for i in self.player_dice if i > 0]
+        if len(x) == 1:
+            self.game_over = 1
+        return
+
+    # method to execute the calling of a bid, handles changing of all
+    # global variables
+    def call_on_bid(self):
+
+        (count,face_value) = self.current_bid
+        # cnt is number of actual occurences of the face value plus wild cards
+        cnt = 0
+
+        for i in xrange(0,self.num_players):
+            # implies the player is active
+            if self.player_dice[i] > 0:
+                x = self.player_hands[i]
+                for j in xrange(0,x.size):
+                    if (x[j] == 1) or (x[j] == face_value):
+                        cnt += 1
+
+        # previous bid was true, current player loses a die
+        if cnt >= count:
+            self.previous_player = None
+            self.player_dice[self.current_player] -= 1
+
+            # player is out of game and cannot initiate bidding next round
+            if self.player_dice[self.current_player] == 0:
+                # will edit the global variable for current player
+                self.next_player_id()
+                self.check_if_game_won()
 
 
-		return
+        # previous bid was false, previous player loses a die
+        else:
+            self.player_dice[self.previous_player] -= 1
+            # player who loses the round begins bidding in next round
+            # player is out of game and cannot initiate bidding next round
+            if self.player_dice[self.previous_player] > 0:
+                self.current_player = self.previous_player
+            else:
+                self.next_player_id()
+                self.check_if_game_won()
+
+            self.previous_player = None
+
+        return
+
+    # method to execute the making of a new bid
+    def make_new_bid(self,bid):
+        self.current_bid = bid
+        self.previous_player = self.current_player
+        self.next_player_id()
+        return
+
+    # method to return the id of the player who holds the next turn
+    def next_player_id(self):
+        next_id = self.current_player
+        while self.player_dice[next_id] < 1:
+            next_id = (next_id + 1) % self.num_players
+
+        self.current_player = next_id
+        return
+
+    # simulates another round, returns 1 for game being won, 0 otherwise
+    def simulate_one_turn(self):
+        # check for game being won which occurs when current_player is None
+        if self.game_over == 1:
+            return 1
+        else:
+            # execute the mechanics of a turn
+            self.calculate_prob()
+            self.roll_dice()
+            self.cumul_turns += 1
+            return 0
+
+    # method to print general information for debugging
+    def print_state(self):
+        print('Current state of game')
+        print('Current Player: ' + str(self.current_player+1))
+        print('Current Dice: ' + str(self.player_dice))
+        print('Total Dice: ' + str(self.total_dice))
+        print('\n')
+
+        return
 
 
-class Player:
-	# want to know which player it is, ids are just ints (starting at 0)
-	def __init__(self, player_id):
-		self.player_id = player_id
-		self.player_hand = None
-		self.my_dice = None
-		self.rest_of_dice = None
+# code that we actually want to run
+if __name__ == "__main__":
+    num_players = 3
+    dice_per_player = 5
+    # instantiate the RunGame class
+    liars = RunGame(num_players, dice_per_player)
 
+    while liars.simulate_one_turn() == 0:
+        os.system('clear')
+        print('Next turn')
+        time.sleep(0.5)
+        liars.print_state()
+        time.sleep(1)
 
-	def update_my_hand(self, ):
-		# get your hand from the GameState class
+    print('The game is over! The winner is Player ' + str(liars.current_player + 1))
 
-		return
-
-
-	def get_total_dice_left(self):
-		# first update hand so we can count how many dice we have in our hand
-
-		# get total number of remaining dice, and subtract your amount
-
-		return
-
-
-	def get_current_bet(self):
-		return
-
-
-	def calculate_prob(self):
-		# use binomial distribution
-
-		# once prob has been determined, should call or bet from here
-
-		return
-
-
-	def make_new_bid(self):
-		return
-
-
-	def call_bluff(self):
-		return
-
-
-
-# player turn --> calculate probabilities for that player's bid
-	# total number of dice
-	# their current dice
 
 
