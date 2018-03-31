@@ -4,6 +4,7 @@ import numpy as np
 import scipy.stats as prob
 import time
 import os
+import random
 
 
 # utilities for running the actual rounds of the game
@@ -73,7 +74,7 @@ class RunGame:
 
 
     # calculate probabilities of potential new bids being true,
-    # return the most likely one 
+    # return the most likely one
     def calc_rational_bid(self):
         return
 
@@ -85,13 +86,52 @@ class RunGame:
 
     # decies which action to do based on player personality and
     # executes it
-    def decide_action(self, player_type):
-        # once prob has been determined
+    def decide_action(self, player_pers):
+        # must make a bid if there currently is no bid
         if self.previous_player is None:
-            self.make_new_bid((3,4))
+            # naive player makes a naive bid
+            if player_pers == 1:
+                self.make_new_bid(self.calc_naive_bid())
+            # bluffer and rational player make a rational bid
+            else:
+                self.make_new_bid(self.calc_rational_bid())
 
+        # has the option to call and will decide based on personality
         else:
-            self.call_on_bid()
+            # rational player
+            if player_pers == 0:
+                # prob of current bid being true is below threshold, so call
+                if self.check_bid_prob() < self.rational_threshold:
+                    self.call_on_bid()
+                # rational decision is to make a new bid
+                else:
+                    self.make_new_bid(self.calc_rational_bid())
+
+            # naive player
+            elif player_pers == 1:
+                # calls with probability self.naive_threshold
+                if random.uniform(0,1) < self.naive_threshold:
+                    self.call_on_bid()
+                # otherwise makes a naive bid
+                else:
+                    self.make_new_bid(self.calc_naive_bid())
+
+            # bluffing player
+            else:
+                # prob of current bid being true is below threshold, so should call
+                if self.check_bid_prob() < self.rational_threshold:
+                    # with prob bluff_threshold will go opposite and bid
+                    if random.uniform(0,1) < self.bluff_threshold:
+                        self.make_new_bid(self.calc_rational_bid())
+                    else:
+                        self.call_on_bid()
+                # rational decision is to make a new bid
+                else:
+                    # with prob bluff_threshold calls instead of making the bid
+                    if random.uniform(0,1) < self.bluff_threshold:
+                        self.call_on_bid()
+                    else:
+                        self.make_new_bid(self.calc_rational_bid())
 
         return
 
@@ -173,15 +213,8 @@ class RunGame:
             return 1
         else:
             # execute the mechanics of a turn
-
-            # determine which function to call based on personality
             y = self.player_types[self.current_player]
-            if y == 0:
-                self.calculate_prob_rational()
-            elif y == 1:
-                self.calculate_prob_naive()
-            else:
-                self.calculate_prob_bluffer()
+            self.decide_action(y)
             self.roll_dice()
             self.cumul_turns += 1
             return 0
@@ -200,10 +233,10 @@ class RunGame:
 
 # code that we actually want to run
 if __name__ == "__main__":
-    num_players = 3
+    num_players = 2
     dice_per_player = 5
     # 0 is rational, 1 is naive, 2 is bluffer
-    personalities = [0,0,0]
+    personalities = [0,0]
     # instantiate the RunGame class
     liars = RunGame(num_players, dice_per_player, personalities)
 
