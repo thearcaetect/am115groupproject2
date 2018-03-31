@@ -37,6 +37,19 @@ class RunGame:
         # face value 2
         self.current_bid = (1,2)
 
+        # parameters for players:
+        # naive_threshold is the probability with which a naive
+        # player chooses to call
+        self.naive_threshhold = 0.5
+
+        # probability with which a rational player chooses
+        # to call the previous player's bluff
+        self.rational_threshold = 0.6
+
+        # probability that a bluffing player commits the
+        # opposite of the rational action
+        self.bluff_threshold = 0.2
+
 
     # method for rerolling the dice and taking into account
     def roll_dice(self):
