@@ -5,6 +5,7 @@ import scipy.stats as prob
 import time
 import os
 
+
 # utilities for running the actual rounds of the game
 # inherits the gamestate class, as that is what it manipulates
 class RunGame:
@@ -36,6 +37,7 @@ class RunGame:
         # face value 2
         self.current_bid = (1,2)
 
+
     # method for rerolling the dice and taking into account
     def roll_dice(self):
         new_total = 0
@@ -52,11 +54,25 @@ class RunGame:
         return
 
 
-    # will return a tuple, if first value is True then second element is the bet
-    # that should be placed, if first value False, action is to call
-    def calculate_prob_rational(self):
-        # use binomial distribution (will implement later)
+    # calculate the probability that the current bid is true
+    def check_bid_prob(self):
+        return
 
+
+    # calculate probabilities of potential new bids being true,
+    # return the most likely one 
+    def calc_rational_bid(self):
+        return
+
+
+    # chooses a new bid uniformly at random from potential new bids
+    def calc_naive_bid(self):
+        return
+
+
+    # decies which action to do based on player personality and
+    # executes it
+    def decide_action(self, player_type):
         # once prob has been determined
         if self.previous_player is None:
             self.make_new_bid((3,4))
@@ -66,33 +82,6 @@ class RunGame:
 
         return
 
-    # will return a tuple, if first value is True then second element is the bet
-    # that should be placed, if first value False, action is to call
-    def calculate_prob_naive(self):
-        # use binomial distribution (will implement later)
-
-        # once prob has been determined
-        if self.previous_player is None:
-            self.make_new_bid((3,4))
-
-        else:
-            self.call_on_bid()
-
-        return
-
-    # will return a tuple, if first value is True then second element is the bet
-    # that should be placed, if first value False, action is to call
-    def calculate_prob_bluffer(self):
-        # use binomial distribution (will implement later)
-
-        # once prob has been determined
-        if self.previous_player is None:
-            self.make_new_bid((3,4))
-
-        else:
-            self.call_on_bid()
-
-        return
 
     # method that checks if only one player remains, if so updates global flag
     def check_if_game_won(self):
@@ -100,6 +89,7 @@ class RunGame:
         if len(x) == 1:
             self.game_over = 1
         return
+
 
     # method to execute the calling of a bid, handles changing of all
     # global variables
@@ -144,12 +134,14 @@ class RunGame:
 
         return
 
+
     # method to execute the making of a new bid
     def make_new_bid(self,bid):
         self.current_bid = bid
         self.previous_player = self.current_player
         self.next_player_id()
         return
+
 
     # method to return the id of the player who holds the next turn
     def next_player_id(self):
@@ -159,6 +151,7 @@ class RunGame:
 
         self.current_player = next_id
         return
+
 
     # simulates another round, returns 1 for game being won, 0 otherwise
     def simulate_one_turn(self):
@@ -179,6 +172,7 @@ class RunGame:
             self.roll_dice()
             self.cumul_turns += 1
             return 0
+
 
     # method to print general information for debugging
     def print_state(self):
