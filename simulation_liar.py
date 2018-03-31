@@ -9,12 +9,13 @@ import os
 # inherits the gamestate class, as that is what it manipulates
 class RunGame:
     # initial distribution (roll the dies)
-    def __init__(self, num_players, dice_per_player):
+    def __init__(self, num_players, dice_per_player, personalities):
         self.num_players = num_players
         self.total_dice = dice_per_player * self.num_players
 
         self.player_hands = []
         self.player_dice = []
+        self.player_types = personalities
 
         # no need to shuffle as already random, one array per player
         for i in xrange(1,self.num_players+1):
@@ -53,7 +54,35 @@ class RunGame:
 
     # will return a tuple, if first value is True then second element is the bet
     # that should be placed, if first value False, action is to call
-    def calculate_prob(self):
+    def calculate_prob_rational(self):
+        # use binomial distribution (will implement later)
+
+        # once prob has been determined
+        if self.previous_player is None:
+            self.make_new_bid((3,4))
+
+        else:
+            self.call_on_bid()
+
+        return
+
+    # will return a tuple, if first value is True then second element is the bet
+    # that should be placed, if first value False, action is to call
+    def calculate_prob_naive(self):
+        # use binomial distribution (will implement later)
+
+        # once prob has been determined
+        if self.previous_player is None:
+            self.make_new_bid((3,4))
+
+        else:
+            self.call_on_bid()
+
+        return
+
+    # will return a tuple, if first value is True then second element is the bet
+    # that should be placed, if first value False, action is to call
+    def calculate_prob_bluffer(self):
         # use binomial distribution (will implement later)
 
         # once prob has been determined
@@ -138,7 +167,15 @@ class RunGame:
             return 1
         else:
             # execute the mechanics of a turn
-            self.calculate_prob()
+
+            # determine which function to call based on personality
+            y = self.player_types[self.current_player]
+            if y == 0:
+                self.calculate_prob_rational()
+            elif y == 1:
+                self.calculate_prob_naive()
+            else:
+                self.calculate_prob_bluffer()
             self.roll_dice()
             self.cumul_turns += 1
             return 0
@@ -158,8 +195,10 @@ class RunGame:
 if __name__ == "__main__":
     num_players = 3
     dice_per_player = 5
+    # 0 is rational, 1 is naive, 2 is bluffer
+    personalities = [0,0,0]
     # instantiate the RunGame class
-    liars = RunGame(num_players, dice_per_player)
+    liars = RunGame(num_players, dice_per_player, personalities)
 
     while liars.simulate_one_turn() == 0:
         os.system('clear')
