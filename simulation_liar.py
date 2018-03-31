@@ -1,7 +1,7 @@
 #!/usr/local/bin/python
 
 import numpy as np
-import scipy.stats as prob
+import scipy.stats as binom
 import time
 import os
 
@@ -35,7 +35,7 @@ class RunGame:
         # the current bid is a tuple of quantity and face value
         # i.E. initial bid is that there is at least one dice with
         # face value 2
-        self.current_bid = (1,2)
+        self.current_bid = None
 
         # parameters for players:
         # naive_threshold is the probability with which a naive
@@ -68,8 +68,33 @@ class RunGame:
 
 
     # calculate the probability that the current bid is true
+    # from the current player's perspective
+    # note: here we are rounding 1/3 to the float 0.333
     def check_bid_prob(self):
-        return
+        # get current player's dice
+        player_hand = self.player_hands[self.current_player]
+
+        # subtract the current player's matching dice from the
+        # bid count
+        face_value = self.current_bid[1]
+
+        # occurrences of the face value in the current player's hand
+        frequency = player_hand.count(face_value)
+
+        # the number of occurrences of the current bids face value
+        # for required in other player's hands for the bid to be true
+        other_freq = self.current_bid[0] - frequency
+
+        if other_freq == 0:
+            return 1.0
+        else:
+            # total number of dice of other players
+            num_other_dice = self.total_dice - len(player_hand)
+
+            # calculate probability based on binomial distr.
+            trials, p = num_other_dice, 0.333
+            prob = binom.cdf(other_freq, trials, p)
+            return prob
 
 
     # calculate probabilities of potential new bids being true,
