@@ -1,10 +1,11 @@
 #!/usr/local/bin/python
 
 import numpy as np
-import scipy.stats as binom
-import time
+import operator
 import os
 import random
+import scipy.stats as binom
+import time
 
 
 # utilities for running the actual rounds of the game
@@ -12,6 +13,9 @@ import random
 class RunGame:
     # initial distribution (roll the dies)
     def __init__(self, num_players, dice_per_player, personalities):
+
+        # note: here we are rounding 1/3 to the float 0.333
+        ROLLING_PROB = 0.333
         self.num_players = num_players
         self.total_dice = dice_per_player * self.num_players
 
@@ -70,7 +74,6 @@ class RunGame:
 
     # calculate the probability that the current bid is true
     # from the current player's perspective
-    # note: here we are rounding 1/3 to the float 0.333
     def check_bid_prob(self):
         # get current player's dice
         player_hand = self.player_hands[self.current_player]
@@ -93,20 +96,64 @@ class RunGame:
             num_other_dice = self.total_dice - len(player_hand)
 
             # calculate probability based on binomial distr.
-            trials, p = num_other_dice, 0.333
-            prob = binom.cdf(other_freq, trials, p)
+            trials, p = num_other_dice, ROLLING_PROB
+            # the prob is converse of the cdf, as we want
+            # to know probability of at least that many successes
+            prob = 1.0 - binom.cdf(other_freq, trials, p)
             return prob
 
+    def get_possible_bids(self):
+        frequency = self.current_bid[0]
+        face_value = self.current_bid[1]
+        # all the possible new bids
+        possible_bids = []
 
-    # calculate probabilities of potential new bids being true,
+        # bids keeping face value the same and raising frequency
+        for i in range(frequency + 1, self.total_dice + 1):
+            possible_bids.append(i, face_value)
+
+        # bids raising the face value
+        for j in range(face_value + 1, 7):
+            for k in range(1, self.total_dice + 1):
+                possible_bids.append(k, j)
+        return possible_bids
+
+    # calculate probabilities of potential new bids being true
+    # from the current player's perspective, 
     # return the most likely one
     def calc_rational_bid(self):
-        return
+        possible_bids = self.get_possible_bids()
+        # dictionary which stores the bids as keys and has
+        # the probability of the bid being true as values
+        bids_dict = {}
 
+        # get current player's dice
+        player_hand = self.player_hands[self.current_player]
+
+        # dict which tells you how much of each die a player has
+        hand_count = {}
+        for i in range(1,7):
+            hand_count[i] = player_hand.count(i)
+
+        num_other_dice = self.total_dice - len(player_hand)
+        p = ROLLING_PROB
+        for tup in possible_bids:
+            freq = tup[0]
+            val = tup[1]
+            required_successes = freq - hand_count[val]
+            if required_successes == 0:
+                bids_dict[tup] = 1.0
+            else:
+                prob = 1.0 - binom.cdf(freq - hand_count[val], num_other_dice, p)
+                bids_dict[tup] = prob
+
+        # return key with max value
+        return max(bids_dict.iteritems(), key=operator.itemgetter(1))[0]
 
     # chooses a new bid uniformly at random from potential new bids
     def calc_naive_bid(self):
-        return
+        possible_bids = self.get_possible_bids()
+        return random.choice(possible_bids)
 
 
     # decies which action to do based on player personality and
