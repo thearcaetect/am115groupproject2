@@ -295,6 +295,7 @@ class RunGame:
     def simulate_one_turn(self):
         # check for game being won which occurs when current_player is None
         if self.game_over == 1:
+            self.print_state()
             return 1
         else:
             # execute the mechanics of a turn
@@ -302,6 +303,8 @@ class RunGame:
             self.decide_action(y)
             self.roll_dice()
             self.cumul_turns += 1
+            self.print_state()
+            time.sleep(0.65)
             return 0
 
 
@@ -330,12 +333,16 @@ if __name__ == "__main__":
     # instantiate the RunGame class
     liars = RunGame(num_players, dice_per_player, personalities)
 
-    while liars.simulate_one_turn() == 0:
+    while True:
         # os.system('clear')
-        print('Next turn')
-        time.sleep(0.5)
-        liars.print_state()
-        time.sleep(1)
+        # print('Next turn')
+        # time.sleep(0.5)
+        # liars.print_state()
+        # time.sleep(1)
+        turn = liars.simulate_one_turn()
+        if turn == 1:
+            break
+
 
 
     print('The game is over! The winner is Player ' + str(liars.current_player + 1))
