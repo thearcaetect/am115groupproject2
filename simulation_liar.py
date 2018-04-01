@@ -24,6 +24,11 @@ class RunGame:
         self.player_dice = []
         self.player_types = personalities
 
+        # flag that determines when to reroll dice
+        self.roll_flag = 0
+        self.round_lengths = []
+        self.round_counter = 0
+
         # no need to shuffle as already random, one array per player
         for i in xrange(1,self.num_players+1):
             roll = np.random.randint(1,7,dice_per_player)
@@ -59,7 +64,7 @@ class RunGame:
 
         # player ranking, tracks who loses the game first
         # for example [3,1,2] means that player 3 is in last place
-        # and player 2 in second to last place (the only player left is 
+        # and player 2 in second to last place (the only player left is
         # the winner)
         self.player_ranking = []
 
@@ -138,7 +143,7 @@ class RunGame:
         return possible_bids
 
     # calculate probabilities of potential new bids being true
-    # from the current player's perspective, 
+    # from the current player's perspective,
     # return the most likely one
     def calc_rational_bid(self):
         possible_bids = self.get_possible_bids()
@@ -278,6 +283,9 @@ class RunGame:
 
             self.previous_player = None
 
+        # indicate that the dice need to be rerolled
+        self.roll_flag = 1
+
         return
 
 
@@ -309,8 +317,16 @@ class RunGame:
             # execute the mechanics of a turn
             y = self.player_types[self.current_player]
             self.decide_action(y)
-            self.roll_dice()
+            # turn has been decided, add one to counter
             self.cumul_turns += 1
+            self.round_counter += 1
+            # only roll once a player loses a die
+            if self.roll_flag == 1:
+                self.roll_dice()
+                self.round_lengths.append(self.round_counter)
+                self.round_counter = 0
+                # set flag back to 0 after rolling
+                self.roll_flag = 0
             self.print_state()
             # time.sleep(0.65)
             return 0
@@ -331,13 +347,16 @@ class RunGame:
         print('SUMMARY STATISTICS:\n')
         return
 
+    def print_rounds(self):
+        print(self.round_lengths)
+        return
 
 # code that we actually want to run
 if __name__ == "__main__":
-    num_players = 2
+    num_players = 4
     dice_per_player = 5
     # 0 is rational, 1 is naive, 2 is bluffer
-    personalities = [0,0]
+    personalities = [0,0,0,0]
     # instantiate the RunGame class
     liars = RunGame(num_players, dice_per_player, personalities)
 
@@ -357,8 +376,7 @@ if __name__ == "__main__":
     #### SUMMARY STATISTICS ####
     print('The game is over! The winner is Player ' + str(liars.current_player + 1))
     liars.print_summary_statistics()
-
-
+    liars.print_rounds()
 
 
     #### GRAPHING ####
@@ -369,13 +387,6 @@ if __name__ == "__main__":
     plt.xlabel('Time')
     plt.ylabel('Result')
     plt.title('Graph of Something Cool')
-
     plt.show()
-
-
-
-
-
-
 
 
