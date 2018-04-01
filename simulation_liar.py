@@ -51,7 +51,7 @@ class RunGame:
         # parameters for players:
         # naive_threshold is the probability with which a naive
         # player chooses to call
-        self.naive_threshhold = 0.5
+        self.naive_threshold = 0.5
 
         # probability with which a rational player chooses
         # to call the previous player's bluff
@@ -187,7 +187,7 @@ class RunGame:
     def decide_action(self, player_pers):
         # must make a bid if there currently is no bid
         # corner case if you reach the highest bid possible
-        if self.previous_player is None:
+        if self.previous_player is None or self.current_bid is None:
             # naive player makes a naive bid
             if player_pers == 1:
                 self.make_new_bid(self.calc_naive_bid())
@@ -372,7 +372,7 @@ if __name__ == "__main__":
     num_players = 4
     dice_per_player = 5
     # 0 is rational, 1 is naive, 2 is bluffer
-    personalities = [0, 0, 0,0]
+    personalities = [1, 1, 1, 1]
     # instantiate the RunGame class
     liars = RunGame(num_players, dice_per_player, personalities)
 
@@ -395,13 +395,15 @@ if __name__ == "__main__":
 
 
     #### GRAPHING ####
-    x = [0,1,2,3,4,5]
-    y = [0,2,4,6,7,13]
-    plt.plot(x, y, color='green', marker='o',
-        linewidth=2, markersize=12)
-    plt.xlabel('Time')
-    plt.ylabel('Result')
-    plt.title('Graph of Something Cool')
-    plt.show()
+    # x = [0,1,2,3,4,5]
+    # y = [0,2,4,6,7,13]
+    # plt.plot(x, y, color='green', marker='o',
+             
+
+    #          linewidth=2, markersize=12)
+    # plt.xlabel('Time')
+    # plt.ylabel('Result')
+    # plt.title('Graph of Something Cool')
+    # plt.show()
 
 
