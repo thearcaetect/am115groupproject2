@@ -1,5 +1,6 @@
 #!/usr/local/bin/python
 
+import matplotlib.pyplot as plt
 import numpy as np
 import operator
 import os
@@ -311,7 +312,7 @@ class RunGame:
             self.roll_dice()
             self.cumul_turns += 1
             self.print_state()
-            time.sleep(0.65)
+            # time.sleep(0.65)
             return 0
 
 
@@ -353,6 +354,28 @@ if __name__ == "__main__":
     print liars.cumul_turns
 
 
-
+    #### SUMMARY STATISTICS ####
     print('The game is over! The winner is Player ' + str(liars.current_player + 1))
     liars.print_summary_statistics()
+
+
+
+
+    #### GRAPHING ####
+    x = [0,1,2,3,4,5]
+    y = [0,2,4,6,7,13]
+    plt.plot(x, y, color='green', marker='o',
+        linewidth=2, markersize=12)
+    plt.xlabel('Time')
+    plt.ylabel('Result')
+    plt.title('Graph of Something Cool')
+
+    plt.show()
+
+
+
+
+
+
+
+
