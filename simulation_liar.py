@@ -196,12 +196,15 @@ class RunGame:
             # bluffer and rational player make a rational bid
             else:
                 self.make_new_bid(self.calc_rational_bid())
+            return
 
         # has the option to call and will decide based on personality
         else:
             (quantity, face_value) = self.current_bid
             if face_value == 6 and quantity == self.total_dice:
                 self.call_on_bid()
+                return
+
             # rational player
             if player_pers == 0:
                 make_new_bid_prob = self.calc_rational_bid(return_val=1)
@@ -211,6 +214,7 @@ class RunGame:
                 # rational decision is to make a new bid
                 else:
                     self.make_new_bid(self.calc_rational_bid())
+                return
 
             # naive player
             elif player_pers == 1:
@@ -220,6 +224,7 @@ class RunGame:
                 # otherwise makes a naive bid
                 else:
                     self.make_new_bid(self.calc_naive_bid())
+                return
 
             # bluffing player
             else:
@@ -238,6 +243,7 @@ class RunGame:
                         self.call_on_bid()
                     else:
                         self.make_new_bid(self.calc_rational_bid())
+                return
 
         return
 
@@ -253,7 +259,6 @@ class RunGame:
     # method to execute the calling of a bid, handles changing of all
     # global variables
     def call_on_bid(self):
-
         (count,face_value) = self.current_bid
         # cnt is number of actual occurences of the face value plus wild cards
         cnt = 0
@@ -330,6 +335,8 @@ class RunGame:
         else:
             # execute the mechanics of a turn
             y = self.player_types[self.current_player]
+            print 'CURRENT FUCKING BID'
+            print self.current_bid
             self.decide_action(y)
             # turn has been decided, add one to counter
             self.cumul_turns += 1
@@ -384,6 +391,7 @@ def simulate_game(n, num_players, dice_per_player, personalities):
         liars = RunGame(num_players, dice_per_player, personalities)
 
         while True:
+            liars.print_state()
             turn = liars.simulate_one_turn()
             if turn == 1:
                 winners_list.append(liars.current_player + 1)
@@ -406,11 +414,11 @@ def simulate_game(n, num_players, dice_per_player, personalities):
 
 # code that we actually want to run
 if __name__ == "__main__":
-    num_players = 4
+    num_players = 2
     dice_per_player = 5
     # 0 is rational, 1 is naive, 2 is bluffer
-    personalities = [0,0,0,0]
-    number_of_trials = 10
+    personalities = [0,2]
+    number_of_trials = 1
     simulate_game(number_of_trials, num_players, dice_per_player, personalities)
 
 
@@ -421,11 +429,11 @@ if __name__ == "__main__":
 # liars.print_rounds()
 
 
-    #### GRAPHING ####
-    # x = [0,1,2,3,4,5]
-    # y = [0,2,4,6,7,13]
-    # plt.plot(x, y, color='green', marker='o', linewidth=2, markersize=12)
-    # plt.xlabel('Time')
-    # plt.ylabel('Result')
-    # plt.title('Graph of Something Cool')
-    # plt.show()
+#### GRAPHING ####
+# x = [0,1,2,3,4,5]
+# y = [0,2,4,6,7,13]
+# plt.plot(x, y, color='green', marker='o', linewidth=2, markersize=12)
+# plt.xlabel('Time')
+# plt.ylabel('Result')
+# plt.title('Graph of Something Cool')
+# plt.show()
