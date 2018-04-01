@@ -230,13 +230,15 @@ class RunGame:
             else:
                 make_new_bid_prob = self.calc_rational_bid(return_val=1)
                 # prob of current bid being true is below threshold, so should call
+                # rational move is to call but with some prob you raise the bid
                 if self.check_bid_prob() < make_new_bid_prob:
                     # with prob bluff_threshold will go opposite and bid
                     if random.uniform(0,1) < self.bluff_threshold:
                         self.make_new_bid(self.calc_rational_bid())
                     else:
                         self.call_on_bid()
-                # rational decision is to make a new bid
+                # rational decision is to make a new bid, 
+                # but with some prob you call
                 else:
                     # with prob bluff_threshold calls instead of making the bid
                     if random.uniform(0,1) < self.bluff_threshold:
@@ -335,8 +337,6 @@ class RunGame:
         else:
             # execute the mechanics of a turn
             y = self.player_types[self.current_player]
-            print 'CURRENT FUCKING BID'
-            print self.current_bid
             self.decide_action(y)
             # turn has been decided, add one to counter
             self.cumul_turns += 1
@@ -391,7 +391,7 @@ def simulate_game(n, num_players, dice_per_player, personalities):
         liars = RunGame(num_players, dice_per_player, personalities)
 
         while True:
-            liars.print_state()
+            # liars.print_state()
             turn = liars.simulate_one_turn()
             if turn == 1:
                 winners_list.append(liars.current_player + 1)
@@ -417,8 +417,8 @@ if __name__ == "__main__":
     num_players = 2
     dice_per_player = 5
     # 0 is rational, 1 is naive, 2 is bluffer
-    personalities = [0,2]
-    number_of_trials = 1
+    personalities = [0,1,2]
+    number_of_trials = 1000
     simulate_game(number_of_trials, num_players, dice_per_player, personalities)
 
 
