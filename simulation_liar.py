@@ -56,6 +56,13 @@ class RunGame:
         self.bluff_threshold = 0.2
 
 
+        # player ranking, tracks who loses the game first
+        # for example [3,1,2] means that player 3 is in last place
+        # and player 2 in second to last place (the only player left is 
+        # the winner)
+        self.player_ranking = []
+
+
     # method for rerolling the dice and taking into account
     def roll_dice(self):
         new_total = 0
@@ -342,6 +349,8 @@ if __name__ == "__main__":
         turn = liars.simulate_one_turn()
         if turn == 1:
             break
+
+    print liars.cumul_turns
 
 
 
