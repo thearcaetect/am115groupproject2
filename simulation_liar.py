@@ -186,12 +186,7 @@ class RunGame:
     # executes it
     def decide_action(self, player_pers):
         # must make a bid if there currently is no bid
-        # DOUBLE CHECK --> greater than or less than the threshholds?
-
         # corner case if you reach the highest bid possible
-
-
-
         if self.previous_player is None:
             # naive player makes a naive bid
             if player_pers == 1:
@@ -199,7 +194,6 @@ class RunGame:
             # bluffer and rational player make a rational bid
             else:
                 self.make_new_bid(self.calc_rational_bid())
-
 
 
         # has the option to call and will decide based on personality
@@ -273,6 +267,9 @@ class RunGame:
         if cnt >= count:
             self.previous_player = None
             self.player_dice[self.current_player] -= 1
+            if self.player_dice[self.current_player] == 0:
+                self.player_ranking.append(self.current_player)
+
             self.current_bid = None
             # player is out of game and cannot initiate bidding next round
             if self.player_dice[self.current_player] == 0:
@@ -280,10 +277,12 @@ class RunGame:
                 self.next_player_id()
                 self.check_if_game_won()
 
-
         # previous bid was false, previous player loses a die
         else:
             self.player_dice[self.previous_player] -= 1
+            if self.player_dice[self.previous_player] == 0:
+                self.player_ranking.append(self.previous_player)
+
             self.current_bid = None
             # player who loses the round begins bidding in next round
             # player is out of game and cannot initiate bidding next round
@@ -361,6 +360,11 @@ class RunGame:
 
     def print_rounds(self):
         print(self.round_lengths)
+        final_ranking = list(reversed([x + 1 for x in self.player_ranking]))
+        print final_ranking
+        print('Ranking:')
+        for i in range(len(final_ranking)):
+            print('%dth place: %d' % (i + 1, final_ranking[i]))
         return
 
 # code that we actually want to run
@@ -380,9 +384,8 @@ if __name__ == "__main__":
         # time.sleep(1)
         turn = liars.simulate_one_turn()
         if turn == 1:
+            liars.player_ranking.append(liars.current_player)
             break
-
-
 
     #### SUMMARY STATISTICS ####
     liars.print_summary_statistics()
