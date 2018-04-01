@@ -173,6 +173,7 @@ class RunGame:
                 bids_dict[tup] = prob
 
         # return key with max value
+        print bids_dict
         return max(bids_dict.iteritems(), key=operator.itemgetter(1))[0]
 
     # chooses a new bid uniformly at random from potential new bids
@@ -186,6 +187,11 @@ class RunGame:
     def decide_action(self, player_pers):
         # must make a bid if there currently is no bid
         # DOUBLE CHECK --> greater than or less than the threshholds?
+
+        # corner case if you reach the highest bid possible
+
+
+
         if self.previous_player is None:
             # naive player makes a naive bid
             if player_pers == 1:
@@ -194,8 +200,13 @@ class RunGame:
             else:
                 self.make_new_bid(self.calc_rational_bid())
 
+
+
         # has the option to call and will decide based on personality
         else:
+            (quantity, face_value) = self.current_bid
+            if face_value == 6 and quantity == self.total_dice:
+                self.call_on_bid()
             # rational player
             if player_pers == 0:
                 # prob of current bid being true is below threshold, so call
@@ -262,7 +273,7 @@ class RunGame:
         if cnt >= count:
             self.previous_player = None
             self.player_dice[self.current_player] -= 1
-
+            self.current_bid = None
             # player is out of game and cannot initiate bidding next round
             if self.player_dice[self.current_player] == 0:
                 # will edit the global variable for current player
@@ -273,6 +284,7 @@ class RunGame:
         # previous bid was false, previous player loses a die
         else:
             self.player_dice[self.previous_player] -= 1
+            self.current_bid = None
             # player who loses the round begins bidding in next round
             # player is out of game and cannot initiate bidding next round
             if self.player_dice[self.previous_player] > 0:
@@ -356,7 +368,7 @@ if __name__ == "__main__":
     num_players = 4
     dice_per_player = 5
     # 0 is rational, 1 is naive, 2 is bluffer
-    personalities = [0,0,0,0]
+    personalities = [0, 0, 0,0]
     # instantiate the RunGame class
     liars = RunGame(num_players, dice_per_player, personalities)
 
