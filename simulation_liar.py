@@ -53,10 +53,6 @@ class RunGame:
         # player chooses to call
         self.naive_threshold = 0.5
 
-        # probability with which a rational player chooses
-        # to call the previous player's bluff
-        self.rational_threshold = 0.15
-
         # probability that a bluffing player commits the
         # opposite of the rational action
         self.bluff_threshold = 0.2
@@ -144,7 +140,7 @@ class RunGame:
     # calculate probabilities of potential new bids being true
     # from the current player's perspective,
     # return the most likely one
-    def calc_rational_bid(self):
+    def calc_rational_bid(self, return_val=0):
         possible_bids = self.get_possible_bids()
         # dictionary which stores the bids as keys and has
         # the probability of the bid being true as values
@@ -173,7 +169,14 @@ class RunGame:
 
         # return key with max value
         # print bids_dict
-        return max(bids_dict.iteritems(), key=operator.itemgetter(1))[0]
+        suggested_bid = max(bids_dict.iteritems(), key=operator.itemgetter(1))[0]
+        suggest_bid_prob = bids_dict[suggested_bid]
+
+        if return_val == 0:
+            return suggested_bid
+
+        if return_val == 1:
+            return suggest_bid_prob
 
     # chooses a new bid uniformly at random from potential new bids
     def calc_naive_bid(self):
@@ -194,7 +197,6 @@ class RunGame:
             else:
                 self.make_new_bid(self.calc_rational_bid())
 
-
         # has the option to call and will decide based on personality
         else:
             (quantity, face_value) = self.current_bid
@@ -202,8 +204,9 @@ class RunGame:
                 self.call_on_bid()
             # rational player
             if player_pers == 0:
+                make_new_bid_prob = self.calc_rational_bid(return_val=1)
                 # prob of current bid being true is below threshold, so call
-                if self.check_bid_prob() < self.rational_threshold:
+                if self.check_bid_prob() < make_new_bid_prob:
                     self.call_on_bid()
                 # rational decision is to make a new bid
                 else:
@@ -220,8 +223,9 @@ class RunGame:
 
             # bluffing player
             else:
+                make_new_bid_prob = self.calc_rational_bid(return_val=1)
                 # prob of current bid being true is below threshold, so should call
-                if self.check_bid_prob() < self.rational_threshold:
+                if self.check_bid_prob() < make_new_bid_prob:
                     # with prob bluff_threshold will go opposite and bid
                     if random.uniform(0,1) < self.bluff_threshold:
                         self.make_new_bid(self.calc_rational_bid())
