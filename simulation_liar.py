@@ -325,7 +325,7 @@ class RunGame:
     def simulate_one_turn(self):
         # check for game being won which occurs when current_player is None
         if self.game_over == 1:
-            self.print_state()
+            # self.print_state()
             return 1
         else:
             # execute the mechanics of a turn
@@ -341,7 +341,7 @@ class RunGame:
                 self.round_counter = 0
                 # set flag back to 0 after rolling
                 self.roll_flag = 0
-            self.print_state()
+            # self.print_state()
             # time.sleep(0.65)
             return 0
 
@@ -370,31 +370,55 @@ class RunGame:
             print('%dth place: %d' % (i + 1, final_ranking[i]))
         return
 
+
+def average(lst):
+    return float(sum(lst)) / float(len(lst))
+
+def simulate_game(n, num_players, dice_per_player, personalities):
+    total_turns_list = []
+    avg_turns_list = []
+    winners_list = []
+
+    for i in range(n):
+        # instantiate the RunGame class
+        liars = RunGame(num_players, dice_per_player, personalities)
+
+        while True:
+            turn = liars.simulate_one_turn()
+            if turn == 1:
+                winners_list.append(liars.current_player + 1)
+                liars.player_ranking.append(liars.current_player)
+                break
+
+        avg_round_length = average(liars.round_lengths)
+        avg_turns_list.append(avg_round_length)
+        total_turns_list.append(liars.cumul_turns)
+
+
+    print('Average Total Turn Length: %f' % average(total_turns_list))
+    print('Average Turns Per Round: %f ' % average(avg_turns_list))
+
+    win_count_dict = {}
+    for player in set(winners_list):
+        win_count_dict[player] = winners_list.count(player)
+    print('Frequency of Winners:')
+    print win_count_dict
+
 # code that we actually want to run
 if __name__ == "__main__":
     num_players = 4
     dice_per_player = 5
     # 0 is rational, 1 is naive, 2 is bluffer
     personalities = [0,0,0,0]
-    # instantiate the RunGame class
-    liars = RunGame(num_players, dice_per_player, personalities)
+    number_of_trials = 10
+    simulate_game(number_of_trials, num_players, dice_per_player, personalities)
 
-    while True:
-        # os.system('clear')
-        # print('Next turn')
-        # time.sleep(0.5)
-        # liars.print_state()
-        # time.sleep(1)
-        turn = liars.simulate_one_turn()
-        if turn == 1:
-            liars.player_ranking.append(liars.current_player)
-            break
 
-    #### SUMMARY STATISTICS ####
-    liars.print_summary_statistics()
-    print('The game is over! The winner is Player ' + str(liars.current_player + 1))
-    print liars.cumul_turns
-    liars.print_rounds()
+#### SUMMARY STATISTICS ####
+# liars.print_summary_statistics()
+# print('The game is over! The winner is Player ' + str(liars.current_player + 1))
+# print liars.cumul_turns
+# liars.print_rounds()
 
 
     #### GRAPHING ####
