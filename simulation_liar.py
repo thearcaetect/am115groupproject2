@@ -51,11 +51,11 @@ class RunGame:
         # parameters for players:
         # naive_threshold is the probability with which a naive
         # player chooses to call
-        self.naive_threshhold = 0.5
+        self.naive_threshold = 0.8
 
         # probability with which a rational player chooses
         # to call the previous player's bluff
-        self.rational_threshold = 0.6
+        self.rational_threshold = 0.15
 
         # probability that a bluffing player commits the
         # opposite of the rational action
@@ -310,7 +310,7 @@ class RunGame:
 
     # method to return the id of the player who holds the next turn
     def next_player_id(self):
-        next_id = self.current_player
+        next_id = (self.current_player + 1) % self.num_players
         while self.player_dice[next_id] < 1:
             next_id = (next_id + 1) % self.num_players
 
@@ -372,7 +372,7 @@ if __name__ == "__main__":
     num_players = 4
     dice_per_player = 5
     # 0 is rational, 1 is naive, 2 is bluffer
-    personalities = [0, 0, 0,0]
+    personalities = [0,0,0,0]
     # instantiate the RunGame class
     liars = RunGame(num_players, dice_per_player, personalities)
 
@@ -395,13 +395,11 @@ if __name__ == "__main__":
 
 
     #### GRAPHING ####
-    x = [0,1,2,3,4,5]
-    y = [0,2,4,6,7,13]
-    plt.plot(x, y, color='green', marker='o',
-        linewidth=2, markersize=12)
-    plt.xlabel('Time')
-    plt.ylabel('Result')
-    plt.title('Graph of Something Cool')
-    plt.show()
-
-
+    # x = [0,1,2,3,4,5]
+    # y = [0,2,4,6,7,13]
+    # plt.plot(x, y, color='green', marker='o',
+    #     linewidth=2, markersize=12)
+    # plt.xlabel('Time')
+    # plt.ylabel('Result')
+    # plt.title('Graph of Something Cool')
+    # plt.show()
