@@ -173,7 +173,7 @@ class RunGame:
                 bids_dict[tup] = prob
 
         # return key with max value
-        print bids_dict
+        # print bids_dict
         return max(bids_dict.iteritems(), key=operator.itemgetter(1))[0]
 
     # chooses a new bid uniformly at random from potential new bids
@@ -382,12 +382,12 @@ if __name__ == "__main__":
         if turn == 1:
             break
 
-    print liars.cumul_turns
 
 
     #### SUMMARY STATISTICS ####
-    print('The game is over! The winner is Player ' + str(liars.current_player + 1))
     liars.print_summary_statistics()
+    print('The game is over! The winner is Player ' + str(liars.current_player + 1))
+    print liars.cumul_turns
     liars.print_rounds()
 
 
