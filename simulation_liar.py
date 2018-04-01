@@ -378,8 +378,10 @@ class RunGame:
         return
 
 
+#### Utilities for Running Statistics ####
 def average(lst):
     return float(sum(lst)) / float(len(lst))
+
 
 def simulate_game(n, num_players, dice_per_player, personalities):
     total_turns_list = []
@@ -412,14 +414,60 @@ def simulate_game(n, num_players, dice_per_player, personalities):
     print('Frequency of Winners:')
     print win_count_dict
 
+
+
+# format of personalities here is one player of a type and five of another
+# type, such that player 0 is the player whose ranking distribution we want
+def simulate_one_vs_many(n, num_players, dice_per_player, personalities):
+    total_turns_list = []
+    avg_turns_list = []
+    winners_list = []
+
+    # in each game, track the place that the player comes in, and store it
+    one_player_rankings = []
+    ranking_count_dict = {}
+
+    for i in range(n):
+        # instantiate the RunGame class
+        liars = RunGame(num_players, dice_per_player, personalities)
+
+        while True:
+            # liars.print_state()
+            turn = liars.simulate_one_turn()
+            if turn == 1:
+                winners_list.append(liars.current_player + 1)
+                liars.player_ranking.append(liars.current_player)
+                break
+
+        avg_round_length = average(liars.round_lengths)
+        avg_turns_list.append(avg_round_length)
+        total_turns_list.append(liars.cumul_turns)
+
+        player_id = 0
+        ranking = liars.player_ranking
+        # get the ranking in descending order from first to last
+        ranking.reverse()
+        one_player_rankings.append(ranking.index(player_id))
+
+    # build the probability distribution
+    for i in range(num_players):
+        count = one_player_rankings.count(i)
+        ranking_count_dict[i] = count
+    return ranking_count_dict
+
+
 # code that we actually want to run
 if __name__ == "__main__":
-    num_players = 2
+    num_players = 6
     dice_per_player = 5
     # 0 is rational, 1 is naive, 2 is bluffer
-    personalities = [0,1,2]
-    number_of_trials = 1000
-    simulate_game(number_of_trials, num_players, dice_per_player, personalities)
+    personalities = [0,1,1,1,1,1]
+    number_of_trials = 500
+    # simulate_game(number_of_trials, num_players, dice_per_player, personalities)
+    rank_distr = simulate_one_vs_many(number_of_trials, num_players, dice_per_player, personalities)
+    places = [x + 1 for x in rank_distr.keys()]
+    plt.plot(places, rank_distr.values())
+    plt.show()
 
 
 #### SUMMARY STATISTICS ####
@@ -437,3 +485,5 @@ if __name__ == "__main__":
 # plt.ylabel('Result')
 # plt.title('Graph of Something Cool')
 # plt.show()
+
+
