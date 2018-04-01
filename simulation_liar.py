@@ -4,7 +4,7 @@ import numpy as np
 import operator
 import os
 import random
-import scipy.stats as binom
+from scipy.stats import binom
 import time
 
 
@@ -15,7 +15,7 @@ class RunGame:
     def __init__(self, num_players, dice_per_player, personalities):
 
         # note: here we are rounding 1/3 to the float 0.333
-        ROLLING_PROB = 0.333
+        self.rolling_prob = 0.333
         self.num_players = num_players
         self.total_dice = dice_per_player * self.num_players
 
@@ -75,47 +75,58 @@ class RunGame:
     # calculate the probability that the current bid is true
     # from the current player's perspective
     def check_bid_prob(self):
-        # get current player's dice
-        player_hand = self.player_hands[self.current_player]
-
-        # subtract the current player's matching dice from the
-        # bid count
-        face_value = self.current_bid[1]
-
-        # occurrences of the face value in the current player's hand
-        frequency = player_hand.count(face_value)
-
-        # the number of occurrences of the current bids face value
-        # for required in other player's hands for the bid to be true
-        other_freq = self.current_bid[0] - frequency
-
-        if other_freq == 0:
+        # DOUBLE CHECK IF THIS IS RIGHT
+        # if there is no current bid, prob should be 1
+        if self.current_bid is None:
             return 1.0
         else:
-            # total number of dice of other players
-            num_other_dice = self.total_dice - len(player_hand)
+            # get current player's dice
+            player_hand = self.player_hands[self.current_player]
 
-            # calculate probability based on binomial distr.
-            trials, p = num_other_dice, ROLLING_PROB
-            # the prob is converse of the cdf, as we want
-            # to know probability of at least that many successes
-            prob = 1.0 - binom.cdf(other_freq, trials, p)
-            return prob
+            # subtract the current player's matching dice from the
+            # bid count
+            face_value = self.current_bid[1]
+
+            # occurrences of the face value in the current player's hand
+
+            frequency = list(player_hand.flatten()).count(face_value)
+
+            # the number of occurrences of the current bids face value
+            # for required in other player's hands for the bid to be true
+            other_freq = self.current_bid[0] - frequency
+
+            if other_freq == 0:
+                return 1.0
+            else:
+                # total number of dice of other players
+                num_other_dice = self.total_dice - len(player_hand)
+
+                # calculate probability based on binomial distr.
+                trials, p = num_other_dice, self.rolling_prob
+                # the prob is converse of the cdf, as we want
+                # to know probability of at least that many successes
+                prob = 1.0 - binom.cdf(other_freq, trials, p)
+                return prob
 
     def get_possible_bids(self):
-        frequency = self.current_bid[0]
-        face_value = self.current_bid[1]
-        # all the possible new bids
+        # list of all the possible new bids
         possible_bids = []
+        if self.current_bid is None:
+            frequency = 0
+            face_value = 1
+
+        else:
+            frequency = self.current_bid[0]
+            face_value = self.current_bid[1]
 
         # bids keeping face value the same and raising frequency
         for i in range(frequency + 1, self.total_dice + 1):
-            possible_bids.append(i, face_value)
+            possible_bids.append((i, face_value))
 
         # bids raising the face value
         for j in range(face_value + 1, 7):
             for k in range(1, self.total_dice + 1):
-                possible_bids.append(k, j)
+                possible_bids.append((k, j))
         return possible_bids
 
     # calculate probabilities of potential new bids being true
@@ -132,11 +143,12 @@ class RunGame:
 
         # dict which tells you how much of each die a player has
         hand_count = {}
+        hand_list = list(player_hand.flatten())
         for i in range(1,7):
-            hand_count[i] = player_hand.count(i)
+            hand_count[i] = hand_list.count(i)
 
         num_other_dice = self.total_dice - len(player_hand)
-        p = ROLLING_PROB
+        p = self.rolling_prob
         for tup in possible_bids:
             freq = tup[0]
             val = tup[1]
@@ -160,6 +172,7 @@ class RunGame:
     # executes it
     def decide_action(self, player_pers):
         # must make a bid if there currently is no bid
+        # DOUBLE CHECK --> greater than or less than the threshholds?
         if self.previous_player is None:
             # naive player makes a naive bid
             if player_pers == 1:
@@ -295,11 +308,16 @@ class RunGame:
     # method to print general information for debugging
     def print_state(self):
         print('Current state of game')
-        print('Current Player: ' + str(self.current_player+1))
-        print('Current Dice: ' + str(self.player_dice))
+        print('Current Player: ' + str(self.current_player + 1))
+        print('Current Number of Dice: ' + str(self.player_dice))
+        print('Current Player Hand: ') + str(self.player_hands[self.current_player])
         print('Total Dice: ' + str(self.total_dice))
+        print('Current Bid: ') + str(self.current_bid)
         print('\n')
+        return
 
+    def print_summary_statistics(self):
+        print('SUMMARY STATISTICS:\n')
         return
 
 
@@ -313,13 +331,12 @@ if __name__ == "__main__":
     liars = RunGame(num_players, dice_per_player, personalities)
 
     while liars.simulate_one_turn() == 0:
-        os.system('clear')
+        # os.system('clear')
         print('Next turn')
         time.sleep(0.5)
         liars.print_state()
         time.sleep(1)
 
+
     print('The game is over! The winner is Player ' + str(liars.current_player + 1))
-
-
-
+    liars.print_summary_statistics()
