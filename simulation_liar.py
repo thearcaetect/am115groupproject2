@@ -56,7 +56,7 @@ class RunGame:
 
         # probability that a bluffing player commits the
         # opposite of the rational action
-        self.bluff_threshold = 0.2
+        self.bluff_threshold = 0.1
 
         # player ranking, tracks who loses the game first
         # for example [3,1,2] means that player 3 is in last place
@@ -185,7 +185,7 @@ class RunGame:
         return random.choice(possible_bids)
 
 
-    # decies which action to do based on player personality and
+    # decides which action to do based on player personality and
     # executes it
     def decide_action(self, player_pers):
         # must make a bid if there currently is no bid
@@ -367,7 +367,8 @@ class RunGame:
 
     def print_summary_statistics(self):
         print('SUMMARY STATISTICS:\n')
-        return
+        print('The game is over! The winner is Player ' + str(liars.current_player + 1))
+        print('Total Turns: ') + str(self.cumul_turns)
 
     def print_rounds(self):
         print(self.round_lengths)
@@ -412,8 +413,9 @@ def simulate_game(n, num_players, dice_per_player, personalities):
     win_count_dict = {}
     for player in set(winners_list):
         win_count_dict[player] = winners_list.count(player)
-    print('Frequency of Winners:')
-    print win_count_dict
+    # print('Frequency of Winners:')
+    # print win_count_dict
+    return
 
 
 
@@ -426,7 +428,7 @@ def simulate_one_vs_many(n, num_players, dice_per_player, personalities):
     ranking_count_dict = {}
 
     for i in range(n):
-        print i
+        # print i
         # instantiate the RunGame class
         liars = RunGame(num_players, dice_per_player, personalities)
 
@@ -452,9 +454,9 @@ def simulate_one_vs_many(n, num_players, dice_per_player, personalities):
     win_count_dict = {}
     for player in set(winners_list):
         win_count_dict[player] = winners_list.count(player)
-    print('Frequency of Winners:')
-    print win_count_dict
-    print '\n'
+    # print('Frequency of Winners:')
+    # print win_count_dict
+    # print '\n'
     return ranking_count_dict
 
 # format of personalities here will be [0,1,2]
@@ -476,7 +478,7 @@ def simulate_mixed(n, num_players, dice_per_player, personalities):
 
 
     for i in range(n):
-        print i
+        # print i
         # instantiate the RunGame class
         liars = RunGame(num_players, dice_per_player, personalities)
 
@@ -489,10 +491,14 @@ def simulate_mixed(n, num_players, dice_per_player, personalities):
                 break
 
         ranking = liars.player_ranking
+        ranking.reverse()
         # get the ranking in descending order from first to last
         rational_rankings.append(ranking.index(0))
         naive_rankings.append(ranking.index(1))
         bluffing_rankings.append(ranking.index(2))
+
+    # print 'WINNERS'
+    # print winners_list
 
     # build the probability distributions for each player
     for i in range(num_players):
@@ -505,21 +511,44 @@ def simulate_mixed(n, num_players, dice_per_player, personalities):
         bluffing_count = bluffing_rankings.count(i)
         bluffing_ranking_count_dict[i] = bluffing_count
 
-    print rational_ranking_count_dict
-    print naive_ranking_count_dict
-    print bluffing_ranking_count_dict
     return [rational_ranking_count_dict, naive_ranking_count_dict, bluffing_ranking_count_dict]
-
-
 
 
 # code that we actually want to run
 if __name__ == "__main__":
+    #### Mixed Trial Simulation ####
+    num_players = 3
+    dice_per_player = 5
+    # 0 is rational, 1 is naive, 2 is bluffer
+    personalities = [0,1,2]
+    number_of_trials = 100
+    ranking_dicts = simulate_mixed(number_of_trials, num_players, dice_per_player, personalities)
+
+    percents = []
+    places = [i + 1 for i in ranking_dicts[0].keys()]
+    for d in ranking_dicts:
+        place_freq = d.values()
+        place_percents = [k / float(number_of_trials) for k in place_freq]
+        percents.append(place_percents)
+
+    print('\nMixed Trial: One of Each')
+    print('Gambling Personalities')
+    print personalities
+
+    for i in range(num_players):
+        print 'Player: %d' % i
+        print percents[i]
+
+    print('\n\n')
+
+
+    #### One Vs. Many Trial Simulation ####
+    print('One Vs. Many Trial Simulation\n')
     num_players = 6
     dice_per_player = 5
     # 0 is rational, 1 is naive, 2 is bluffer
-    personalities = [2,0,0,0,0,0]
-    number_of_trials = 1000
+    personalities = [0,1,1,1,1,1]
+    number_of_trials = 100
     # simulate_game(number_of_trials, num_players, dice_per_player, personalities)
     rank_distr = simulate_one_vs_many(number_of_trials, num_players, dice_per_player, personalities)
     places = [i + 1 for i in rank_distr.keys()]
@@ -531,30 +560,14 @@ if __name__ == "__main__":
     print place_freq
     print('Place Probabilities')
     print place_percents
-    fig, ax = plt.subplots()
+
+    #### GRAPHING ####
     plt.bar(places, place_percents, width=1, color='purple')
     plt.xlabel('Ranking Position', fontsize=20)
     plt.ylabel('Probability', fontsize=20)
-    plt.title('Probability Distr. 1 Bluffing vs. 5 Rational Players', y=1.03, fontsize=20)
+    plt.title('Probability Distr. 1 Rational vs. 5 Naive Players', y=1.03, fontsize=20)
     purple_patch = mpatches.Patch(color='purple', label='n = 1000')
     plt.legend(handles=[purple_patch])
-    plt.savefig('1bluffing5naive.png')
-
-
-#### SUMMARY STATISTICS ####
-# liars.print_summary_statistics()
-# print('The game is over! The winner is Player ' + str(liars.current_player + 1))
-# print liars.cumul_turns
-# liars.print_rounds()
-
-
-#### GRAPHING ####
-# x = [0,1,2,3,4,5]
-# y = [0,2,4,6,7,13]
-# plt.plot(x, y, color='green', marker='o', linewidth=2, markersize=12)
-# plt.xlabel('Time')
-# plt.ylabel('Result')
-# plt.title('Graph of Something Cool')
-# plt.show()
-
+    plt.savefig('1rational5naive.png')
+    plt.show()
 
