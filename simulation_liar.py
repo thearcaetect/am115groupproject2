@@ -1,5 +1,6 @@
 #!/usr/local/bin/python
 
+import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
 import operator
@@ -419,15 +420,13 @@ def simulate_game(n, num_players, dice_per_player, personalities):
 # format of personalities here is one player of a type and five of another
 # type, such that player 0 is the player whose ranking distribution we want
 def simulate_one_vs_many(n, num_players, dice_per_player, personalities):
-    total_turns_list = []
-    avg_turns_list = []
     winners_list = []
-
     # in each game, track the place that the player comes in, and store it
     one_player_rankings = []
     ranking_count_dict = {}
 
     for i in range(n):
+        print i
         # instantiate the RunGame class
         liars = RunGame(num_players, dice_per_player, personalities)
 
@@ -439,10 +438,6 @@ def simulate_one_vs_many(n, num_players, dice_per_player, personalities):
                 liars.player_ranking.append(liars.current_player)
                 break
 
-        avg_round_length = average(liars.round_lengths)
-        avg_turns_list.append(avg_round_length)
-        total_turns_list.append(liars.cumul_turns)
-
         player_id = 0
         ranking = liars.player_ranking
         # get the ranking in descending order from first to last
@@ -453,7 +448,69 @@ def simulate_one_vs_many(n, num_players, dice_per_player, personalities):
     for i in range(num_players):
         count = one_player_rankings.count(i)
         ranking_count_dict[i] = count
+
+    win_count_dict = {}
+    for player in set(winners_list):
+        win_count_dict[player] = winners_list.count(player)
+    print('Frequency of Winners:')
+    print win_count_dict
+    print '\n'
     return ranking_count_dict
+
+# format of personalities here will be [0,1,2]
+# so one rational, one naive, and one bluffing player
+def simulate_mixed(n, num_players, dice_per_player, personalities):
+    total_turns_list = []
+    avg_turns_list = []
+    winners_list = []
+
+    # in each game, track the place that each player comes in, and store it
+    naive_rankings = []
+    naive_ranking_count_dict = {}
+
+    rational_rankings = []
+    rational_ranking_count_dict = {}
+
+    bluffing_rankings = []
+    bluffing_ranking_count_dict = {}
+
+
+    for i in range(n):
+        print i
+        # instantiate the RunGame class
+        liars = RunGame(num_players, dice_per_player, personalities)
+
+        while True:
+            # liars.print_state()
+            turn = liars.simulate_one_turn()
+            if turn == 1:
+                winners_list.append(liars.current_player + 1)
+                liars.player_ranking.append(liars.current_player)
+                break
+
+        ranking = liars.player_ranking
+        # get the ranking in descending order from first to last
+        rational_rankings.append(ranking.index(0))
+        naive_rankings.append(ranking.index(1))
+        bluffing_rankings.append(ranking.index(2))
+
+    # build the probability distributions for each player
+    for i in range(num_players):
+        rational_count = rational_rankings.count(i)
+        rational_ranking_count_dict[i] = rational_count
+
+        naive_count = naive_rankings.count(i)
+        naive_ranking_count_dict[i] = naive_count
+
+        bluffing_count = bluffing_rankings.count(i)
+        bluffing_ranking_count_dict[i] = bluffing_count
+
+    print rational_ranking_count_dict
+    print naive_ranking_count_dict
+    print bluffing_ranking_count_dict
+    return [rational_ranking_count_dict, naive_ranking_count_dict, bluffing_ranking_count_dict]
+
+
 
 
 # code that we actually want to run
@@ -461,13 +518,27 @@ if __name__ == "__main__":
     num_players = 6
     dice_per_player = 5
     # 0 is rational, 1 is naive, 2 is bluffer
-    personalities = [0,1,1,1,1,1]
-    number_of_trials = 500
+    personalities = [2,0,0,0,0,0]
+    number_of_trials = 1000
     # simulate_game(number_of_trials, num_players, dice_per_player, personalities)
     rank_distr = simulate_one_vs_many(number_of_trials, num_players, dice_per_player, personalities)
-    places = [x + 1 for x in rank_distr.keys()]
-    plt.plot(places, rank_distr.values())
-    plt.show()
+    places = [i + 1 for i in rank_distr.keys()]
+    place_freq = rank_distr.values()
+    place_percents = [k / float(number_of_trials) for k in place_freq]
+    # print('Possible ranks')
+    # print places
+    print('Place Count Frequencies')
+    print place_freq
+    print('Place Probabilities')
+    print place_percents
+    fig, ax = plt.subplots()
+    plt.bar(places, place_percents, width=1, color='purple')
+    plt.xlabel('Ranking Position', fontsize=20)
+    plt.ylabel('Probability', fontsize=20)
+    plt.title('Probability Distr. 1 Bluffing vs. 5 Rational Players', y=1.03, fontsize=20)
+    purple_patch = mpatches.Patch(color='purple', label='n = 1000')
+    plt.legend(handles=[purple_patch])
+    plt.savefig('1bluffing5naive.png')
 
 
 #### SUMMARY STATISTICS ####
